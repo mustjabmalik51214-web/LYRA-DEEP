@@ -4,11 +4,11 @@ from transformers import pipeline
 
 app = Flask(__name__)
 
-print("Loading Qwen1.5 0.5B Chat Model...")
+print("Loading DeepSeek Model...")
 pipe = pipeline(
     "text-generation",
-    model="Qwen/Qwen2.5-1.5B-Instruct",
-    torch_dtype=torch.float32,
+    model="muhammad-taqi512/LYRA-DEEP",
+    torch_dtype=torch.float16,
     device_map="auto"
 )
 print("Model Loaded Successfully!")
@@ -26,17 +26,7 @@ def generate():
         return jsonify({"response": "Please enter a message."}), 400
 
     messages = [
-        {"role": "system", "content": """You are "Lyramoon", an intelligent AI assistant created by MUHAMMAD TAQI.
-When asked about your identity, creator, or links, always maintain this context:
-- Name: Lyramoon
-- Created By: MUHAMMAD TAQI
-- Family AI Link: https://lyra.oneapp.dev/
-- Creator's Official Website: https://nexura.oneapp.dev/
-
-Rules:
-1. Always be polite, clear, and helpful.
-2. Provide precise, factual, and correct information. Never invent fake facts or hallucinate details.
-3. If you do not know something, state it clearly instead of guessing."""},
+        {"role": "system", "content": "You are a helpful AI assistant, YOUR NAME IS LYRA-DEEP AND YOU ARE FEMALE AI, YOUR OWNER AND CREATOR AND FOUNDER IS MUHAMMAD TAQI."},
         {"role": "user", "content": user_prompt}
     ]
     
@@ -46,20 +36,15 @@ Rules:
 
     outputs = pipe(
         prompt, 
-        max_new_tokens=256, 
+        max_new_tokens=512, 
         do_sample=True, 
         temperature=0.7, 
         top_k=50, 
-        top_p=0.95
+        top_p=0.95,
+        return_full_text=False
     )
     
-    generated_text = outputs[0]["generated_text"]
-    
-    # Qwen1.5 ChatML format handle karne ke liye parsing update
-    if "<|im_start|>assistant" in generated_text:
-        response = generated_text.split("<|im_start|>assistant")[-1].replace("<|im_end|>", "").strip()
-    else:
-        response = generated_text.strip()
+    response = outputs[0]["generated_text"].strip()
 
     return jsonify({"response": response})
 
